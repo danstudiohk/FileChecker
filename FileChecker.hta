@@ -1,0 +1,396 @@
+
+
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<!-- 
+************************************
+HTA declare 
+************************************
+-->
+
+<HTA:applcation
+ApplicationName="TRY"
+ID="TRY"
+/>
+
+<!-- 
+************************************
+CSS: style
+************************************
+-->
+
+<style>
+
+body {
+	background-color: #555555;
+}
+
+.header {
+	font-size: 30px;
+	font-weight: bold;
+	font-family: sans-serif;
+	background-color: #555555; 
+	color:white; 
+	letter-spacing:3px;
+}
+
+.lbldate {
+	font-size: 18px;
+	font-weight: bold;
+	font-family: sans-serif;
+	background-color: #555555; 
+	color:white; 
+	letter-spacing:3px;
+}
+
+.inputdate {
+    background: #555555; 
+    border: 1px double #DDD; 
+    border-radius: 5px; 
+	color: white;
+	font-weight: bold;
+	font-family: sans-serif;
+	font-size: 16px;
+}
+
+.button {
+    color: white; 
+	background-color: #555555;
+	width: 120px;
+	border-style: solid;
+    padding: 5px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline;
+    font-size: 16px;
+    cursor: pointer;
+	float:left;
+	-ms-transition-duration: 0.4s; 
+	transition-duration: 0.4s; 
+}
+
+.button:hover {
+    background-color: white; 
+    color: black; 
+	border-color:white;
+}
+
+.datatable {
+	color: white; 
+    text-align: left;
+	border-top-style: none;
+	width: 100%;
+	font-family: sans-serif;
+	font-size: 14px;
+}
+
+.tablehead {
+	text-decoration: underline;
+}
+
+
+datatable.t01 tr:nth-child(even) {
+    background-color: white;
+}
+datatable.t01 tr:nth-child(odd) {
+   background-color: red;
+}
+
+datatable.t01 th	{
+    background-color: black;
+    color: white;
+}
+
+</style>
+
+<!-- 
+************************************
+CSS 
+************************************
+-->
+
+
+
+
+<!-- 
+************************************
+Javascript: function
+************************************
+-->
+
+
+<script language="javascript" type="text/javascript">
+
+
+//to handle number less that 10
+function numless10(num)
+{
+	if (num<10) {
+		return("0" + num);
+	}else{ 
+		return(num);
+	}
+}
+
+	
+function FileStatus(filename,filespec)
+{
+	var fso, f, status, filemodifdt, filemodifdt_full, output;
+	var month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+   fso = new ActiveXObject("Scripting.FileSystemObject");
+
+   //File Exist
+	if (fso.FileExists(filespec)){
+		status = "Ready";
+		f = fso.GetFile(filespec);
+		
+		//File Size
+		filesize = f.size;
+			if (filesize <= 1024){
+			filesize_full = "1 KB";
+			}else if(filesize <=1024^2){
+			filesize_full = (filesize/(1024^2)).toFixed(1) + " MB";
+			}else if(filesize <=1024^3){
+			filesize_full = (filesize/(1024^3)).toFixed(1) + " GB";
+			}
+			
+		//File modified date
+		filemodifdt = new Date(Date.parse(f.DateLastModified));
+		filemodifdt_full = numless10(filemodifdt.getDate()) + "-" + month[filemodifdt.getMonth()] + "-" + filemodifdt.getFullYear() + " ";
+		filemodifdt_full += "(" + numless10(filemodifdt.getHours()) + ":" + numless10(filemodifdt.getMinutes()) + ":" + numless10(filemodifdt.getSeconds()) + ")";
+		
+	}else {
+		status = "Not Exist";
+		filemodifdt_full = "-";
+		filesize_full = "-";
+	}
+
+	  
+	output = "<td>" + filename + "</td>";
+	output += "<td>" + status + "</td>";
+	output += "<td>" + filemodifdt_full + "</td>";
+	output += "<td>" + filesize_full + "</td>";
+	output += "<td>" + filespec + "</td>";
+	return(output);
+	 
+}
+
+
+function LogStatus(filename,filespec)
+{
+	var fso, f, status, filemodifdt, filemodifdt_full, errorcount, output;
+	var month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+   fso = new ActiveXObject("Scripting.FileSystemObject");
+
+   //File Exist
+	if (fso.FileExists(filespec)){
+		status = "Ready";
+		f = fso.GetFile(filespec);
+			
+		//File modified date
+		filemodifdt = new Date(Date.parse(f.DateLastModified));
+		filemodifdt_full = numless10(filemodifdt.getDate()) + "-" + month[filemodifdt.getMonth()] + "-" + filemodifdt.getFullYear() + " ";
+		filemodifdt_full += "(" + numless10(filemodifdt.getHours()) + ":" + numless10(filemodifdt.getMinutes()) + ":" + numless10(filemodifdt.getSeconds()) + ")";
+		
+		//Check error count
+		witherror = "-";
+		txtfile = fso.OpenTextFile(filespec);
+		var allText = txtfile.ReadAll();
+		txtfile.close();
+			if ((allText.toUpperCase()).indexOf("ERROR") >= 0)	{
+			witherror = "Error";
+			}
+	}else {
+		status = "Not Exist";
+		filemodifdt_full = "-";
+		filesize_full = "-";
+		witherror = "-";
+	}
+
+	  
+	output = "<td>" + filename + "</td>";
+	output += "<td>" + status + "</td>";
+	output += "<td>" + witherror + "</td>";
+	output += "<td>" + filemodifdt_full + "</td>";
+	output += "<td>" + filespec + "</td>";
+	return(output);
+	 
+}
+
+
+
+function datamart_js()
+  {
+	var inputdate = document.getElementById("inputdate").value; 
+	var inputdate2 =inputdate.substring(3,8);
+	var output;
+	//Datamart list
+	var name1 = "a_" + inputdate + ".sas7bdat" , path1= "F:\\Project_HTA\\test\\a_" + inputdate + ".sas7bdat";
+	var name2 = "a.txt" , path2= "F:\\Project_HTA\\test\\a.txt";
+	var name3 = "a.csv" , path3= "F:\\Project_HTA\\test\\a.csv";
+	//Datamart list
+	
+	DataArea.innerHTML = "";
+	output =  "<table class=" + "datatable" + ">";
+	output += "<tr>";
+	output += "<th class=" + "tablehead" + ">Datamart</th class=" + "tablehead" + "><th class=" + "tablehead" + ">Status</th><th class=" + "tablehead" + ">Modified Date</th><th class=" + "tablehead" + ">Size</th><th class=" + "tablehead" + ">Physical Location</th>";
+	output += "</tr><tr>";
+	output += FileStatus(name1,path1);
+	output += "</tr><tr>";
+	output += FileStatus(name2,path2);
+	output += "</tr><tr>";
+	output += FileStatus(name3,path3);
+	output += "</tr>"
+	output += "</table>";
+	DataArea.innerHTML = output;
+	document.getElementById("inputdate").focus(); 
+}
+	
+	
+	function report_js()
+	{
+	
+	var inputdate = document.getElementById("inputdate").value; 
+	var inputdate2 =inputdate.substring(3,8);
+	//report list
+	var name1 = "a_" + inputdate , path1= "F:\\Project_HTA\\test\\a_" + inputdate + ".sas7bdat";
+	var name2 = "a.txt" , path2= "F:\\Project_HTA\\test\\a.txt";
+	var name3 = "a.csv" , path3= "F:\\Project_HTA\\test\\a.csv";
+	//report list	
+		
+	DataArea.innerHTML = "";
+	output =  "<table class=" + "datatable t01" + ">";
+	output += "<tr>";
+	output += "<th class=" + "tablehead" + ">Datamart</th class=" + "tablehead" + "><th class=" + "tablehead" + ">Status</th><th class=" + "tablehead" + ">Modified Date</th><th class=" + "tablehead" + ">Size</th><th class=" + "tablehead" + ">Physical Location</th>";
+	output += "</tr><tr>";
+	output += FileStatus(name1,path1);
+	output += "</tr><tr>";
+	output += FileStatus(name2,path2);
+	output += "</tr><tr>";
+	output += FileStatus(name3,path3);
+	output += "</tr>"
+	output += "</table>";
+	DataArea.innerHTML = output;
+	document.getElementById("inputdate").focus(); 
+}
+	
+	function log_js()
+	{
+	var inputdate = document.getElementById("inputdate").value; 
+	var inputdate2 =inputdate.substring(3,8);
+	//Log list
+	var name1 = "a.txt" , path1= "F:\\Project_HTA\\test\\a.txt";
+	//Log list
+	
+	DataArea.innerHTML = "";
+	output =  "<table class=" + "datatable" + ">";
+	output += "<tr>";
+	output += "<th class=" + "tablehead" + ">Datamart</th class=" + "tablehead" + "><th class=" + "tablehead" + ">Status</th><th class=" + "tablehead" + ">Error</th><th class=" + "tablehead" + ">Modified Date</th><th class=" + "tablehead" + ">Physical Location</th>";
+	output += "</tr><tr>";
+	output += LogStatus(name1,path1);
+	output += "</tr>"
+	output += "</table>";
+	DataArea.innerHTML = output;
+	document.getElementById("inputdate").focus(); 
+}
+
+	function network_js()
+	{
+	DataArea.innerHTML = "";
+
+}
+	
+	
+	function main()
+{
+  DP = "SQLOLEDB";
+  DS = "MySQLServer";
+  DB = "PCResale";
+
+  adOpenForwardOnly = 0;
+  adLockReadOnly = 1;
+  adCmdText = 1;
+  try 
+  {
+    var objRs = new ActiveXObject("ADODB.Recordset");
+  }
+  catch (e)
+  {
+    alert("ADODB namespace not found.");
+    exit(0);
+  }
+
+  strConn =  "Provider="         +DP+
+            ";Initial Catalog="  +DB+
+            ";Data Source="      +DS+
+            ";Integrated Security=SSPI;"
+  strComm = "SELECT FirstName FROM CustomerT;" // select Produce
+
+  objRs.open(strComm, 
+             strConn, 
+             adOpenForwardOnly,
+             adLockReadOnly,
+             adCmdText);
+
+  objRs.MoveFirst();
+  while (objRs.EOF != true) 
+  {
+    alert(objRs("FirstName"));
+    objRs.MoveNext();
+  }
+
+  objRs.Close
+  objRs = null;
+}
+
+	
+
+</script>
+
+<!-- 
+************************************
+Javascript
+************************************
+-->
+
+
+<!-- 
+************************************
+HTML: layout
+************************************
+-->
+
+
+</head>
+
+<body>
+
+
+
+
+
+
+<p class="header">File Checker</p>
+<label class="lbldate"> Date:</label>
+<input class="inputdate" type="text" id="inputdate" value=""><br><br>
+
+<button class="button buttondatamart" onclick="datamart_js()">Datamart</button>
+<button class="button buttonreport" onclick="report_js()">Report</button>
+<button class="button buttonlog" onclick="log_js()">Log</button>
+<button class="button buttonnetwork" onclick="main()">Network</button>
+<button class="button buttonBatch" >Batch</button><br><br><br>
+
+
+<p>
+<span id = "DataArea"></span>
+</p> 
+
+
+</body>
+
+</html>
